@@ -1,0 +1,182 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Home Project</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+
+    .profile-icon {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+      background-color: white;
+    }
+
+    .profile-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .sidebar {
+      width: 200px;
+      background-color: #f4b9a6;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+      height: 100vh;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar .logo {
+      background-color: #2b63c0;
+      color: white;
+      padding: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .sidebar a {
+      padding: 15px 20px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+    }
+
+    .sidebar a.active,
+    .sidebar a:hover {
+      background-color: #2b63c0;
+    }
+
+    .content {
+      flex: 1;
+      background-color: #ccf2eb;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .content h1 {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .content p {
+      font-size: 14px;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #333;
+    }
+
+    .new-project-btn {
+      background-color: #4ecdc4;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto 30px auto;
+    }
+
+    .new-project-btn:hover {
+      background-color: #3cbcb3;
+    }
+
+    .project-list {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+
+    .project-item:last-child {
+      border-bottom: none;
+    }
+
+    .project-item h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .project-item p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .project-item a {
+      color: #2b63c0;
+      text-decoration: none;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="{% url 'data_entry:profilelengkap' %}" class="profile-icon">
+    {% if profile.foto %}
+      <img src="{{ profile.foto.url }}" alt="Foto Profil">
+    {% else %}
+      <img src="{% static 'default_user.png' %}" alt="Default">
+    {% endif %}
+  </a>
+
+  <div class="sidebar">
+    <div class="logo">HOME</div>
+    <a href="#" class="active">Beranda</a>
+    <a href="{% url 'data_entry:project_dashboard' %}">Project Dashboard</a>
+    <a href="{% url 'data_entry:projecttimeline' %}">Project Timeline</a>
+    <a href="{% url 'data_entry:activity_log' %}">Activity Log</a>
+    <a href="#">LogOut</a>
+  </div>
+
+  <div class="content">
+    <h1>KELOLA PROYEK ANDA DENGAN MUDAH SEKARANG</h1>
+    <p>Manajemen proyek yang lebih efisien, tanpa stres, dan<br>meningkatkan produktivitas tim Anda.</p>
+    <a href="{% url 'data_entry:newproject' %}">
+      <button class="new-project-btn">NEW PROJECT</button>
+    </a>
+
+    <div class="project-list">
+      {% for p in projects %}
+        <div class="project-item">
+          <h3>{{ p.nama }}</h3>
+          <p><strong>Penanggung Jawab:</strong> {{ p.penanggungjawab }}</p>
+          <p><strong>Waktu:</strong> {{ p.mulai }} s/d {{ p.selesai }}</p>
+          <p><strong>Deskripsi:</strong> {{ p.deskripsi }}</p>
+          <p><strong>Jumlah Anggota:</strong> {{ p.jumlah }}</p>
+          {% if p.file %}
+            <p><a href="{{ p.file.url }}">📎 Download Data Anggota</a></p>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p>Tidak ada proyek yang terdaftar.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>

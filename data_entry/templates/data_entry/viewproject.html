@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Timeline</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #ccf0eb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: #2962ff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content {
+            background-color: #ffffff;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 900px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #d0d0d0;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4caf50;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #89e3d4;
+            color: #000;
+            text-decoration: none;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><em>PROJECT TIMELINE</em></h2>
+    </div>
+    <div class="content">
+        <table>
+            <tr>
+                <th>NO</th>
+                <th>AKTIVITAS</th>
+                <th>STATUS</th>
+                <th>PRESENTASE</th>
+                <th>DEADLINE PROJECT</th>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ task.activity }}</td>
+                <td>{{ task.status }}</td>
+                <td>
+                    <div class="progress-bar">
+                            {{ task.percentage }}%
+                        </div>
+                    </div>
+                </td>
+                <td>{{ task.deadline|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <a class="back-button" href="#">Back</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>User Details</h1>
+<div id="user-details">
+    <!-- User details table will be populated here -->
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var userId = "{{ user_id|escapejs }}";
+
+        fetch(`/api/pengguna/${userId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal mengambil data pengguna');
+                return response.json();
+            })
+            .then(data => {
+                var userDetailsDiv = document.getElementById('user-details');
+                var tableHtml = `
+                    <table class="table">
+                        <tbody>
+                            <tr><th>Email</th><td>${data.email || '-'}</td></tr>
+                            <tr><th>Address</th><td>${data.address_1 || '-'}</td></tr>
+                            <tr><th>Address 2</th><td>${data.address_2 || '-'}</td></tr>
+                            <tr><th>City</th><td>${data.city || '-'}</td></tr>
+                            <tr><th>State</th><td>${data.state || '-'}</td></tr>
+                            <tr><th>Zip Code</th><td>${data.zip_code || '-'}</td></tr>
+                            <tr><th>Tanggal Join</th><td>${data.tanggal_join || '-'}</td></tr>
+                        </tbody>
+                    </table>`;
+                userDetailsDiv.innerHTML = tableHtml;
+            })
+            .catch(error => {
+                document.getElementById('user-details').innerHTML = "<p>Gagal memuat data pengguna.</p>";
+                console.error(error);
+            });
+    });
+</script>
+{% endblock %}

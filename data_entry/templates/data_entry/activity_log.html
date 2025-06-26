@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Activity Log</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #f4b9a6;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .sidebar a {
+            padding: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .sidebar a.active {
+            background-color: #2962ff;
+        }
+
+        .content {
+            flex-grow: 1;
+            background-color: #c9f0e9;
+            padding: 20px;
+            position: relative;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 90%;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .download-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#">HOME</a>
+        <a href="{% url 'data_entry:homeproject' %}">Beranda</a>
+        <a href="{% url 'data_entry:project_dashboard' %}">Project Dashboard</a>
+        <a href="{% url 'data_entry:projecttimeline' %}">Project Timeline</a>
+        <a href="#" class="active">Activity Log</a>
+        <a href="#">LogOut</a>
+    </div>
+    <div class="content">
+        <div class="search-box">
+            <form method="get">
+                <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+            </form>
+        </div>
+
+        {% if project %}
+        <div id="chart-area" class="chart-container">
+            <h2>Aktivitas: {{ project.nama }}</h2>
+            <canvas id="activityChart"></canvas>
+        </div>
+        {% endif %}
+
+        <div class="download-controls">
+            <a href="#" onclick="downloadPDF()">download</a> / 
+            <a href="#" onclick="window.print()">print</a>
+        </div>
+    </div>
+
+    {% if project %}
+    <script>
+        const data = {
+            labels: {{ labels|safe }},
+            datasets: [{
+                label: 'Log Aktivitas',
+                data: {{ values|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true
+            }
+        };
+
+        new Chart(document.getElementById('activityChart'), config);
+    </script>
+    {% endif %}
+
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('chart-area');
+            html2pdf().from(element).save('activity-log.pdf');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Timeline</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ccf1e6;
+    }
+    header {
+      background-color: #f4b9a6;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      color: white;
+    }
+    header p {
+      margin: 0;
+      color: black;
+      font-weight: bold;
+    }
+    .container {
+      width: 90%;
+      margin: 30px auto;
+      background-color: #407ed2;
+      padding: 30px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #6fbff0;
+      color: white;
+    }
+    .btn-refresh {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #78dedc;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .status-selesai {
+      color: green;
+      font-weight: bold;
+    }
+    .status-belum {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PROJECT TIMELINE</h1>
+    <p>PLANNING PROJECT TIMELINE YANG INGIN DIJALANKAN</p>
+  </header>
+
+  <div class="container">
+    <table id="timeline-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Kelompok</th>
+          <th>Deskripsi</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- Data akan dimuat melalui JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <button class="btn-refresh" onclick="loadActivities()">Muat Ulang</button>
+
+  <script>
+    async function loadActivities() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      const sumberAPI = [
+        '/api/terima-management/',
+        '/api/project-management/',
+        '/api/terimamodel/'
+
+      ];
+
+      let nomor = 1;
+
+      for (const url of sumberAPI) {
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          data.forEach(activity => {
+            const nama = activity.nama_kelompok || activity.nama_model || activity.nama || '-';
+            const deskripsi = activity.deskripsi_model || activity.deskripsi || '-';
+            const presentase = activity.presentase !== undefined ? activity.presentase : (activity.status_model?.toLowerCase() === 'selesai' ? 100 : 0);
+            const statusText = presentase === 100 ? 'Selesai' : 'Belum Selesai';
+            const statusClass = presentase === 100 ? 'status-selesai' : 'status-belum';
+            const fileURL = activity.file || activity.file_pdf || null;
+
+            const fileLink = fileURL
+              ? `<a href="${fileURL}" target="_blank">Lihat</a>`
+              : '-';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${nomor++}</td>
+              <td>${nama}</td>
+              <td>${deskripsi}</td>
+              <td class="${statusClass}">${statusText}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+        } catch (error) {
+          console.error(`Gagal mengambil data dari ${url}`, error);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td colspan="5" style="color:red; font-weight:bold;">Gagal mengambil data dari ${url}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+    }
+
+    window.onload = loadActivities;
+  </script>
+</body>
+</html>

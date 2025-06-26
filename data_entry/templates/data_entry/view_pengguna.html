@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pengguna</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h3>Detail Pengguna</h3>
+        <table class="table table-bordered">
+            <tr>
+                <th>Email</th>
+                <td>{{ pengguna.email }}</td>
+            </tr>
+            <tr>
+                <th>Alamat 1</th>
+                <td>{{ pengguna.address_1 }}</td>
+            </tr>
+            <tr>
+                <th>Kota</th>
+                <td>{{ pengguna.city }}</td>
+            </tr>
+            <tr>
+                <th>Provinsi</th>
+                <td>{{ pengguna.state }}</td>
+            </tr>
+        </table>
+
+        <h4 class="mt-5">Unit yang Dimiliki</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nama PLTU</th>
+                    <th>Nama Unit</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for unit in units %}
+                <tr>
+                    <td>{{ unit.namapltu }}</td>
+                    <td>{{ unit.namaunit }}</td>
+                    <td>
+                        <a href="{% url 'data_entry:viewdata' unit.id %}" class="btn btn-outline-success btn-sm">View</a>
+                        <a href="{% url 'data_entry:updatedata' unit.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{% url 'data_entry:deletedata' unit.id %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'data_entry:set_pengguna' %}" class="btn btn-secondary">Kembali</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #b5e5dc;
+        }
+
+        .header {
+            background-color: #3420ff;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            font-style: italic;
+        }
+
+        .container {
+            margin: 30px auto;
+            width: 80%;
+            background-color: #3c72d2;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .search-box {
+            background-color: white;
+            padding: 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            border: none;
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .search-box button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            background-color: white;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .status-onprogress {
+            color: yellowgreen;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .buttons button {
+            background-color: #b5e5dc;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">PROJECT DASHBOARD</div>
+
+    <div class="container">
+        <form method="get" class="search-box">
+            <input type="text" name="keyword" placeholder="Search..." value="{{ request.GET.keyword }}">
+            <button type="submit">&#128269;</button>
+        </form>
+
+        <table>
+            <tr>
+                <th>NO</th>
+                <th>NAMA PROJECT</th>
+                <th>DEADLINE PROJECT</th>
+                <th>PENANGGUNG JAWAB</th>
+                <th>TOTAL PENDANAAN (Rp)</th>
+            </tr>
+            {% for project in projects %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ project.nama|upper }}</td>
+                <td>{{ project.selesai|date:"d F Y" }}</td>
+                <td>{{ project.penanggungjawab|upper }}</td>
+                <td>{{ project.pendanaan|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">Tidak ada project ditemukan.</td>
+            </tr>
+            {% endfor %}
+            <tr><td colspan="5">&nbsp;</td></tr>
+        </table>
+    </div>
+
+    <div class="buttons">
+        <button onclick="window.history.back()">Back</button>
+    </div>
+</body>
+</html>
