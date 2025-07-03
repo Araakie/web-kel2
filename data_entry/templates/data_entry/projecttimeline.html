@@ -97,9 +97,8 @@
 
       const sumberAPI = [
         '/api/terima-management/',
-        '/api/project-management/',
-        '/api/terimamodel/'
-
+        '/api/terima-managementsSI/',
+        '/api/project-management/'
       ];
 
       let nomor = 1;
@@ -109,17 +108,19 @@
           const response = await fetch(url);
           const data = await response.json();
 
-          data.forEach(activity => {
-            const nama = activity.nama_kelompok || activity.nama_model || activity.nama || '-';
-            const deskripsi = activity.deskripsi_model || activity.deskripsi || '-';
-            const presentase = activity.presentase !== undefined ? activity.presentase : (activity.status_model?.toLowerCase() === 'selesai' ? 100 : 0);
+          const dataArray = Array.isArray(data) ? data : data.data;
+
+          if (!Array.isArray(dataArray)) {
+            throw new Error("Respon tidak berupa array");
+          }
+
+          dataArray.forEach(activity => {
+            const nama = activity.namaKelompok || activity.nama_kelompok || activity.nama_model || activity.nama || '-';
+            const deskripsi = activity.deskripsi || activity.deskripsi_model || '-';
+            const status = activity.status?.toLowerCase?.() || activity.status_model?.toLowerCase?.() || '';
+            const presentase = status === 'selesai' || status === '1' ? 100 : 0;
             const statusText = presentase === 100 ? 'Selesai' : 'Belum Selesai';
             const statusClass = presentase === 100 ? 'status-selesai' : 'status-belum';
-            const fileURL = activity.file || activity.file_pdf || null;
-
-            const fileLink = fileURL
-              ? `<a href="${fileURL}" target="_blank">Lihat</a>`
-              : '-';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -135,7 +136,7 @@
           console.error(`Gagal mengambil data dari ${url}`, error);
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td colspan="5" style="color:red; font-weight:bold;">Gagal mengambil data dari ${url}</td>
+            <td colspan="4" style="color:red; font-weight:bold;">Gagal mengambil data dari ${url}</td>
           `;
           tbody.appendChild(tr);
         }

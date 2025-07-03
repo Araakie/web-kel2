@@ -23,7 +23,7 @@ class ProyekSerializer(serializers.Serializer):
 #     aktivitas = serializers.ListField(child=serializers.CharField())
 
 from rest_framework import serializers
-from .models import Project,Management
+from .models import Project,Management,ManagementSI
 
 class ProyekEngineeringSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +36,7 @@ from .models import Timeline
 class TimelineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timeline
-        fields = ['id', 'deskripsi', 'nama', 'status', 'file_pdf']
+        fields = ['id', 'deskripsi', 'nama', 'status']
 
 
 class ManagementSerializer(serializers.ModelSerializer):
@@ -48,17 +48,13 @@ from rest_framework import serializers
 from .models import ProjectManagement
 
 class ProjectManagementSerializer(serializers.ModelSerializer):
-    file = serializers.SerializerMethodField()
-
-    def get_file(self, obj):
-        request = self.context.get('request')
-        if obj.file and hasattr(obj.file, 'url'):
-            return request.build_absolute_uri(obj.file.url) if request else obj.file.url
-        return None
 
     class Meta:
         model = ProjectManagement
         fields = '__all__'
 
 
-
+class ManagementSISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ManagementSI
+        fields = '__all__'

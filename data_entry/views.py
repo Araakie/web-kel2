@@ -167,33 +167,77 @@ from .models import Project
 import requests
 from django.shortcuts import render, redirect
 from .models import Project
+from django.views.decorators.csrf import csrf_exempt
 
+
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import Project
+import requests
+
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from .models import Project
+import json
+import requests
+
+@csrf_exempt
 def new_project(request):
     if request.method == 'POST':
-        nama = request.POST.get('nama')
-        deskripsi = request.POST.get('deskripsi')
-        mulai = request.POST.get('mulai')
-        selesai = request.POST.get('selesai')
-        penanggungjawab = request.POST.get('penanggungjawab')
-        jumlah = request.POST.get('jumlah')
-        pendanaan = request.POST.get('pendanaan')
-        file = request.FILES.get('file')
+        # Cek apakah request dari mobile (JSON) atau dari web (form)
+        if request.content_type.startswith('application/json'):
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        aktivitas1 = request.POST.get('aktivitas1')
-        aktivitas2 = request.POST.get('aktivitas2')
-        aktivitas3 = request.POST.get('aktivitas3')
+            nama = data.get('nama')
+            deskripsi = data.get('deskripsi')
+            mulai = data.get('mulai')
+            selesai = data.get('selesai')
+            penanggungjawab = data.get('penanggungjawab')
+            jumlah = data.get('jumlah', 0)
+            pendanaan = data.get('pendanaan', 0)
+            aktivitas1 = data.get('aktivitas1')
+            aktivitas2 = data.get('aktivitas2')
+            aktivitas3 = data.get('aktivitas3')
+            file = None  # mobile tidak kirim file
+        else:
+            # Data dari form HTML (web)
+            nama = request.POST.get('nama')
+            deskripsi = request.POST.get('deskripsi')
+            mulai = request.POST.get('mulai')
+            selesai = request.POST.get('selesai')
+            penanggungjawab = request.POST.get('penanggungjawab')
+            jumlah = request.POST.get('jumlah')
+            pendanaan = request.POST.get('pendanaan')
+            aktivitas1 = request.POST.get('aktivitas1')
+            aktivitas2 = request.POST.get('aktivitas2')
+            aktivitas3 = request.POST.get('aktivitas3')
+            file = request.FILES.get('file')
 
+        # Validasi
+        if not nama:
+            return JsonResponse({"error": "Field 'nama' is required"}, status=400)
+
+        # Simpan ke database lokal (Teman A)
         project = Project.objects.create(
             nama=nama,
             deskripsi=deskripsi,
             mulai=mulai,
             selesai=selesai,
             penanggungjawab=penanggungjawab,
-            jumlah=jumlah,
-            pendanaan=pendanaan,
+            jumlah=jumlah or 0,
+            pendanaan=pendanaan or 0,
+            aktivitas1=aktivitas1,
+            aktivitas2=aktivitas2,
+            aktivitas3=aktivitas3,
             file=file
         )
 
+        # Kirim ke teman B
         data_to_send = {
             "nama": nama,
             "deskripsi": deskripsi,
@@ -206,14 +250,22 @@ def new_project(request):
         }
 
         try:
-            # Ganti IP ini sesuai IP laptop temanmu
-            response = requests.post("http://10.24.81.87:8000/api/terima_proyek/", json=data_to_send)
+            response = requests.post(
+                "http://10.40.30.73:8000/api/terima_proyek/",
+                json=data_to_send,
+                timeout=10
+            )
             print("Respon dari teman:", response.status_code, response.text)
         except Exception as e:
             print("Gagal mengirim ke teman:", e)
 
-        return redirect('data_entry:homeproject')
+        # Balasan
+        if request.content_type.startswith('application/json'):
+            return JsonResponse({"message": "Project created and sent"}, status=201)
+        else:
+            return redirect('data_entry:homeproject')
 
+    # GET request (web form)
     return render(request, 'data_entry/newproject.html')
 
 from rest_framework.decorators import api_view
@@ -289,6 +341,7 @@ from .models import Timeline
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
+import json
 from .models import Management
 
 @csrf_exempt
@@ -296,9 +349,11 @@ from .models import Management
 def terima_management(request):
     if request.method == 'POST':
         try:
-            nama_kelompok = request.POST.get('namaKelompok')
-            deskripsi = request.POST.get('deskripsi')
-            status = request.POST.get('status')
+            data = json.loads(request.body)
+
+            nama_kelompok = data.get('namaKelompok')
+            deskripsi = data.get('deskripsi')
+            status = data.get('status')
 
             if not all([nama_kelompok, deskripsi, status]):
                 return JsonResponse({'error': 'Semua field harus diisi.'}, status=400)
@@ -311,6 +366,9 @@ def terima_management(request):
 
             return JsonResponse({'message': 'Data berhasil diterima dan disimpan.'}, status=201)
 
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Format JSON tidak valid.'}, status=400)
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -320,11 +378,12 @@ def terima_management(request):
             data.append({
                 'nama': m.namaKelompok,
                 'deskripsi': m.deskripsi,
-                'presentase': 100 if m.status.lower() == 'selesai' else 0  # konversi ke presentase
+                'presentase': 100 if m.status.lower() == 'selesai' else 0
             })
         return JsonResponse(data, safe=False)
-    
+
     return JsonResponse({'error': 'Metode tidak diizinkan.'}, status=405)
+
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -372,7 +431,7 @@ project_tasks = [
     {'activity': 'Maintenance', 'status': 'NOT STARTED', 'percentage': 0, 'deadline': ''},
 ]
 def view_project(request):
-    global project_tasks
+    global project_tasks    
     if request.method == 'POST':
         activity = request.POST.get('activity')
         status = request.POST.get('status')
@@ -497,4 +556,145 @@ def terima_model_view(request):
 
 
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from django.views import View
+import json
+from .models import ManagementSI
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import ManagementSI
+
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
+from .models import ManagementSI
+import json
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import ManagementSI
+import json
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from .models import ManagementSI
+
+@csrf_exempt
+def terima_managementsSI(request):
+    if request.method == 'POST':
+        if not request.body:
+            return JsonResponse({'success': False, 'message': 'Request body kosong'}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({'success': False, 'message': f'Gagal decode JSON: {str(e)}'}, status=400)
+
+        deskripsi = data.get('deskripsi')
+        status = data.get('status')
+        namaKelompok = data.get('namaKelompok')
+
+        if not all([deskripsi, status, namaKelompok]):
+            return JsonResponse({'success': False, 'message': 'Semua field harus diisi'}, status=400)
+
+        ManagementSI.objects.create(
+            deskripsi=deskripsi,
+            status=status,
+            namaKelompok=namaKelompok
+        )
+
+        return JsonResponse({'success': True, 'message': 'Data berhasil disimpan'})
+
+    elif request.method == 'GET':
+        data = list(ManagementSI.objects.values())
+        return JsonResponse({'success': True, 'data': data})
+
+    return JsonResponse({'success': False, 'message': 'Method tidak diizinkan'}, status=405)
+
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Project
+from .serializer import ProyekEngineeringSerializer
+
+@api_view(['GET'])
+def get_project_list(request):
+    queryset = Project.objects.all()
+    serializer = ProyekEngineeringSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+from django.http import JsonResponse
+from .models import Project
+from django.core.serializers import serialize
+import json
+
+def api_home_project(request):
+    projects = Project.objects.all()
+    data = json.loads(serialize('json', projects))
+    project_list = [
+        {
+            "nama": item['fields']['nama'],
+            "deskripsi": item['fields']['deskripsi'],
+            "mulai": item['fields']['mulai'],
+            "selesai": item['fields']['selesai'],
+            "penanggungjawab": item['fields']['penanggungjawab'],
+            "jumlah": item['fields']['jumlah'],
+            "pendanaan": item['fields']['pendanaan'],
+            "aktivitas1": item['fields']['aktivitas1'],
+            "aktivitas2": item['fields']['aktivitas2'],
+            "aktivitas3": item['fields']['aktivitas3']
+        }
+        for item in data
+    ]
+    return JsonResponse(project_list, safe=False)
+
+from django.http import JsonResponse
+from .models import Management, ManagementSI, ProjectManagement
+
+
+from django.http import JsonResponse
+from .models import Management, ManagementSI, ProjectManagement
+
+from django.http import JsonResponse
+from .models import Management, ManagementSI, ProjectManagement
+
+
+def all_timelines(request):
+    if request.method == "GET":
+        data = []
+
+        # Model: Management
+        for m in Management.objects.all():
+            data.append({
+                "nama": m.namaKelompok,
+                "deskripsi": m.deskripsi,
+                "presentase": 100 if m.status.lower() == "selesai" else 0
+            })
+
+        # Model: ManagementSI
+        for m in ManagementSI.objects.all():
+            data.append({
+                "nama": m.namaKelompok,
+                "deskripsi": m.deskripsi,
+                "presentase": 100 if m.status.lower() == "selesai" else 0
+            })
+
+        # Model: ProjectManagement (gunakan field yg sesuai model)
+        for m in ProjectManagement.objects.all():
+            data.append({
+                "nama": m.nama_kelompok,
+                "deskripsi": m.deskripsi_model,  # ✅ ini nama field yg BENAR dari model
+                "presentase": 100 if m.status_model.lower() == "selesai" else 0
+            })
+
+        return JsonResponse(data, safe=False)
+
+    return JsonResponse({"error": "Metode tidak diizinkan"}, status=405)

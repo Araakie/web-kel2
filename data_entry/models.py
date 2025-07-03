@@ -46,6 +46,8 @@ class Content(models.Model):
 from django.db import models
 
 
+from django.db import models
+
 class Project(models.Model):
     nama = models.CharField(max_length=100)
     deskripsi = models.TextField()
@@ -59,7 +61,7 @@ class Project(models.Model):
     aktivitas2 = models.CharField(max_length=100, null=True, blank=True)
     aktivitas3 = models.CharField(max_length=100, null=True, blank=True)
 
-    def __str__(self):
+    def _str_(self):
         return self.nama
 
     
@@ -69,7 +71,6 @@ class Timeline(models.Model):
     nama = models.CharField(max_length=100)
     deskripsi = models.TextField(blank=True, null=True)  # ← pastikan ada ini
     status = models.IntegerField()
-    file_pdf = models.FileField(upload_to='file_pdfs/', blank=True, null=True)
 
 
     def __str__(self):
@@ -96,14 +97,20 @@ class Management(models.Model):
     def _str_(self):
         return f"{self.namaKelompok} - {self.status}"
     
+class ManagementSI(models.Model):
+    namaKelompok = models.TextField()
+    deskripsi = models.TextField()
+    status = models.TextField()
+
+    def _str_(self):
+        return f"{self.namaKelompok} - {self.status}"
+    
 from django.db import models
 
 class ProjectManagement(models.Model):
     nama_kelompok = models.CharField(max_length=100)
-    nama_model = models.CharField(max_length=100, default="default_model")
     status_model = models.CharField(max_length=100)
     deskripsi_model = models.TextField(null=True, blank=True)
-    file = models.FileField(upload_to='uploaded_files/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
